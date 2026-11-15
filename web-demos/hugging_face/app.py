@@ -81,7 +81,7 @@ def parse_augment():
     if not args.device:
         args.device = str(get_device())
 
-    parser_host = "0.0.0.0" if os.environ.get("SPACE_ID") else "127.0.0.1"
+    parser_host = os.environ.get("GRADIO_SERVER_NAME") or ("0.0.0.0" if os.environ.get("SPACE_ID") else "127.0.0.1")
     args.host = parser_host
     return args 
 
