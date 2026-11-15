@@ -503,63 +503,63 @@ with gr.Blocks() as iface:
     gr.HTML(title)
     gr.Markdown(description)
 
-    with gr.Accordion("Model Settings (click to expand)", open=False, elem_id="model-settings"):
+    with gr.Accordion("模型參數設定（點擊展開）", open=False, elem_id="model-settings"):
         with gr.Row():
-            resize_ratio_number = gr.Slider(.01, 1, value=1, step=.01, label="Resize ratio")
-            raft_iter_number = gr.Slider(5, 20, value=20, step=1, label="Iterations for RAFT inference.")
+            resize_ratio_number = gr.Slider(.01, 1, value=1, step=.01, label="解析度縮放比例 (Resize ratio)")
+            raft_iter_number = gr.Slider(5, 20, value=20, step=1, label="RAFT 光流推論迭代次數")
         with gr.Row():
-            dilate_radius_number = gr.Slider(0, 10, value=8, step=1, label="Mask dilation for video and flow masking.")
-            subvideo_length_number = gr.Slider(40, 200, value=80, step=1, label="Length of sub-video for long video inference.")
+            dilate_radius_number = gr.Slider(0, 10, value=8, step=1, label="遮罩擴張半徑（改善邊緣殘影）")
+            subvideo_length_number = gr.Slider(40, 200, value=80, step=1, label="分段處理影格長度（較小較省記憶體）")
         with gr.Row():
-            neighbor_length_number = gr.Slider(5, 20, value=10, step=1, label="Length of local neighboring frames.")
-            ref_stride_number = gr.Slider(5, 20, value=10, step=1, label="Stride of global reference frames.")
+            neighbor_length_number = gr.Slider(5, 20, value=10, step=1, label="鄰近參考影格數")
+            ref_stride_number = gr.Slider(5, 20, value=10, step=1, label="全域參考影格步幅")
         with gr.Row():
-            image_selection_slider = gr.Slider(1, 100, value=1, step=1, label="Start Frame", visible=False)
-            track_pause_number_slider = gr.Slider(1, 100, value=100, step=1, label="Track end frame", visible=False)
+            image_selection_slider = gr.Slider(1, 100, value=1, step=1, label="起始影格", visible=False)
+            track_pause_number_slider = gr.Slider(1, 100, value=100, step=1, label="追蹤結束影格", visible=False)
         with gr.Row():
-            point_prompt = gr.Radio(["Positive", "Negative"], value="Positive", label="Point Prompt", interactive=True, visible=False, min_width=100, scale=1)
-            mask_dropdown = gr.Dropdown(multiselect=True, value=[], label="Mask Selection", visible=False)
+            point_prompt = gr.Radio([("選取 (+)", "Positive"), ("排除 (-)", "Negative")], value="Positive", label="點選模式", interactive=True, visible=False, min_width=100, scale=1)
+            mask_dropdown = gr.Dropdown(multiselect=True, value=[], label="已加入的遮罩清單", visible=False)
 
     gr.Markdown("---")
     with gr.Column():
         with gr.Row(equal_height=True):
             with gr.Column(scale=2, elem_classes="step-heading-column"):
-                gr.Markdown("## Step1: Upload video")
+                gr.Markdown("## 步驟 1：上傳影片")
             with gr.Column(scale=2, elem_classes="step-heading-column"):
                 with gr.Row(visible=False, elem_classes="step2-heading") as step2_title:
                     with gr.Column(scale=3, min_width=260):
-                        gr.Markdown("## Step2: Add masks <small>(Several clicks then **`Add Mask`** <u>one by one</u>)</small>")
+                        gr.Markdown("## 步驟 2：框選遮罩 <small>（點選目標後按 **`加入遮罩`** <u>逐一新增</u>）</small>")
                     model_selection = gr.Dropdown(
                         choices=[("SAM2.1 Small", "small"),
                                  ("SAM2.1 Base+", "base_plus"), ("SAM2.1 Large", "large")],
-                        value=args.sam2_model, label="SAM2.1 version", show_label=False,
+                        value=args.sam2_model, label="SAM2.1 模型版本", show_label=False,
                         container=False, interactive=True, filterable=False,
                         scale=0, min_width=160)
         with gr.Row(equal_height=True):
             with gr.Column(scale=2):
-                video_input = gr.Video(label="Input Video", elem_classes="video")
-                extract_frames_button = gr.Button("Load Video", interactive=True, elem_classes="new_button")
+                video_input = gr.Video(label="輸入影片", elem_classes="video")
+                extract_frames_button = gr.Button("載入影片", interactive=True, elem_classes="new_button")
             with gr.Column(scale=2):
-                template_frame = gr.Image(label="Start Frame", type="pil", interactive=True, elem_id="template_frame", visible=False, elem_classes="image")
+                template_frame = gr.Image(label="起始影格（點擊畫面選取路人／物件）", type="pil", interactive=True, elem_id="template_frame", visible=False, elem_classes="image")
                 with gr.Row(equal_height=True, elem_classes="mask_button_group"):
-                    clear_button_click = gr.Button("Clear Clicks", interactive=True, visible=False, elem_classes="new_button", min_width=100)
-                    add_mask_button = gr.Button("Add Mask", interactive=True, visible=False, elem_classes="new_button", min_width=100)
-                    remove_mask_button = gr.Button("Remove Mask", interactive=True, visible=False, elem_classes="new_button", min_width=100)
-                    segmentation_button = gr.Button("Step 3: Video Segmentation", interactive=True, visible=False, elem_classes="green_button", min_width=100)
+                    clear_button_click = gr.Button("清除點選", interactive=True, visible=False, elem_classes="new_button", min_width=100)
+                    add_mask_button = gr.Button("加入遮罩", interactive=True, visible=False, elem_classes="new_button", min_width=100)
+                    remove_mask_button = gr.Button("移除遮罩", interactive=True, visible=False, elem_classes="new_button", min_width=100)
+                    segmentation_button = gr.Button("步驟 3：追蹤分割影片", interactive=True, visible=False, elem_classes="green_button", min_width=100)
 
         gr.HTML('<hr style="border: none; height: 1.5px; background: linear-gradient(to right, #4CAF50, rgb(243 111 91));margin: 5px 0;">')
         with gr.Row(equal_height=True):
             with gr.Column(scale=2):
-                segmentation_output = gr.Video(label="Segmentation Output", visible=False,
+                segmentation_output = gr.Video(label="追蹤分割預覽", visible=False,
                                                elem_id="segmentation-output", elem_classes=["video", "output-video"])
             with gr.Column(scale=2):
-                inpainting_output = gr.Video(label="Inpainting Output", visible=False,
+                inpainting_output = gr.Video(label="修補完成影片", visible=False,
                                              elem_id="inpainting-output", elem_classes=["video", "output-video"])
         with gr.Row(equal_height=True):
             with gr.Column(scale=2):
-                inpainting_button = gr.Button("Step 4: Video Inpainting", interactive=True, visible=False, elem_classes="orange_button", min_width=100)
+                inpainting_button = gr.Button("步驟 4：開始移除路人／修補", interactive=True, visible=False, elem_classes="orange_button", min_width=100)
             with gr.Column(scale=2):
-                download_button = gr.DownloadButton("Download", interactive=False, visible=False, elem_classes="new_button", min_width=100)
+                download_button = gr.DownloadButton("下載結果影片", interactive=False, visible=False, elem_classes="new_button", min_width=100)
 
     load_outputs = [video_state, interactive_state, click_state, template_frame,
                     image_selection_slider, track_pause_number_slider, point_prompt,
